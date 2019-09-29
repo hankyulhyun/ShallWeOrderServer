@@ -1,0 +1,3 @@
+[submodule "ShallWeOrder/Protos"]
+	path = ShallWeOrder/Protos
+	url = https://github.com/hankyulhyun/ShallWeOrderProtos.git
