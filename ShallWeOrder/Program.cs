@@ -21,6 +21,11 @@ namespace ShallWeOrder
             Host.CreateDefaultBuilder(args)
                 .ConfigureWebHostDefaults(webBuilder =>
                 {
+                    webBuilder.ConfigureKestrel(options =>
+                    {
+                        options.ListenLocalhost(5001, o => o.Protocols = Microsoft.AspNetCore.Server.Kestrel.Core.HttpProtocols.Http2);
+
+                    });
                     webBuilder.UseStartup<Startup>();
                 });
     }
