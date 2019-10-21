@@ -33,6 +33,7 @@ namespace ShallWeOrder
             {
                 endpoints.MapGrpcService<GreeterService>();
                 endpoints.MapGrpcService<OrderService>();
+                endpoints.MapGrpcService<AuthService>();
 
                 endpoints.MapGet("/", async context =>
                 {
