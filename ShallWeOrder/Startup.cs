@@ -31,7 +31,6 @@ namespace ShallWeOrder
 
             app.UseEndpoints(endpoints =>
             {
-                endpoints.MapGrpcService<GreeterService>();
                 endpoints.MapGrpcService<OrderService>();
                 endpoints.MapGrpcService<AuthService>();
 
