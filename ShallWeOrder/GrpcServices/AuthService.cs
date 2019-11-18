@@ -1,12 +1,14 @@
 using System;
 using System.Threading.Tasks;
 using Grpc.Core;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.Extensions.Logging;
 using ShallWeOrder.DBService;
 using ShallWeOrder.Models;
 
 namespace ShallWeOrder.GrpcService
 {
+    [Authorize]
     public class AuthService : Auther.AutherBase
     {
         private readonly ILogger<AuthService> _logger;
@@ -18,6 +20,7 @@ namespace ShallWeOrder.GrpcService
             _userDBService = userDBService;
         }
 
+        [AllowAnonymous]
         public override Task<SignUpReply> SignUp(SignUpRequest request, ServerCallContext context)
         {
             _logger.LogInformation("Sign up request : {Id} / {Password} / {Gender}", request.Id, request.Password, request.Gender);
@@ -46,6 +49,8 @@ namespace ShallWeOrder.GrpcService
             return Task.FromResult(new SignInReply
             {
                 Result = 200,
+                AccessToken = "AccessToken",
+                RefreshToken = "RefreshToken",
             });
         }
 
