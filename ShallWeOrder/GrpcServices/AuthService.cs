@@ -1,8 +1,12 @@
 using System;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
+using System.Text;
 using System.Threading.Tasks;
 using Grpc.Core;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.Extensions.Logging;
+using Microsoft.IdentityModel.Tokens;
 using ShallWeOrder.DBService;
 using ShallWeOrder.Models;
 
@@ -20,7 +24,7 @@ namespace ShallWeOrder.GrpcService
             _userDBService = userDBService;
         }
 
-        [AllowAnonymous]
+        // [AllowAnonymous]
         public override Task<SignUpReply> SignUp(SignUpRequest request, ServerCallContext context)
         {
             _logger.LogInformation("Sign up request : {Id} / {Password} / {Gender}", request.Id, request.Password, request.Gender);
@@ -43,14 +47,39 @@ namespace ShallWeOrder.GrpcService
             });
         }
 
+        [AllowAnonymous]
         public override Task<SignInReply> SignIn(SignInRequest request, ServerCallContext context)
         {
             _logger.LogInformation("Sign in request : {Id} / {Password} ", request.Id, request.Password);
+            var user = _userDBService.Get(request.Id, request.Password);
+            if (user == null)
+            {
+                return Task.FromResult(new SignInReply
+                {
+                    Result = 503,
+                    AccessToken = "",
+                    RefreshToken = "",
+                });
+            }
+
+            var tokenHandler = new JwtSecurityTokenHandler();
+            var key = Encoding.ASCII.GetBytes("0e392c33-746a-4b82-a8be-8400719abd89");
+            var tokenDescriptor = new SecurityTokenDescriptor
+            {
+                Subject = new ClaimsIdentity(new Claim[]
+                {
+                    new Claim(ClaimTypes.Name, user.Id.ToString()),
+                }),
+                Expires = DateTime.UtcNow.AddMinutes(10),
+                SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
+            };
+            var token = tokenHandler.CreateToken(tokenDescriptor);
+
             return Task.FromResult(new SignInReply
             {
                 Result = 200,
-                AccessToken = "AccessToken",
-                RefreshToken = "RefreshToken",
+                AccessToken = tokenHandler.WriteToken(token),
+                RefreshToken = tokenHandler.WriteToken(token),
             });
         }
 

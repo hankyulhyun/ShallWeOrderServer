@@ -7,6 +7,7 @@ using ShallWeOrder.DBService;
 using ShallWeOrder.GrpcService;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using System.Text;
 
 namespace ShallWeOrder
 {
@@ -19,7 +20,8 @@ namespace ShallWeOrder
             services.AddGrpc();
 
             // TODO : Store key
-            var key = System.Guid.NewGuid().ToByteArray();
+            var key = Encoding.ASCII.GetBytes("0e392c33-746a-4b82-a8be-8400719abd89");
+            // var key = System.Guid.NewGuid().ToByteArray();
             System.Console.WriteLine(key);
 
             services.AddAuthorization();
@@ -42,8 +44,6 @@ namespace ShallWeOrder
             });
 
             services.AddSingleton<UserDBService>();
-
-            services.AddHealthChecks();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

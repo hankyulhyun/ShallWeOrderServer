@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Server.Kestrel.Core;
 using Microsoft.Extensions.Hosting;
 
 namespace ShallWeOrder
@@ -23,7 +24,7 @@ namespace ShallWeOrder
                 {
                     webBuilder.ConfigureKestrel(options =>
                     {
-                        options.ListenLocalhost(5001, o => o.Protocols = Microsoft.AspNetCore.Server.Kestrel.Core.HttpProtocols.Http2);
+                        options.ListenLocalhost(5003, o => o.Protocols = HttpProtocols.Http2);
 
                     });
                     webBuilder.UseStartup<Startup>();
