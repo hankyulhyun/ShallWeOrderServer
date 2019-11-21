@@ -1,3 +1,4 @@
+using Microsoft.Extensions.Configuration;
 using MongoDB.Driver;
 using ShallWeOrder.Models;
 
@@ -5,13 +6,16 @@ namespace ShallWeOrder.DBService
 {
     public class UserDBService
     {
+        private IConfiguration _configuration;
         private readonly IMongoCollection<User> _users;
 
-        public UserDBService()
+        public UserDBService(IConfiguration configuration)
         {
-            var client = new MongoClient("...");
-            var database = client.GetDatabase("...");
-            _users = database.GetCollection<User>("...");
+            _configuration = configuration;
+
+            var client = new MongoClient(_configuration["DB:ConnectionString"]);
+            var database = client.GetDatabase(_configuration["DB:DatabaseName"]);
+            _users = database.GetCollection<User>(_configuration["DB:UserCollection"]);
         }
 
         public User Create(User user)

@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Grpc.Core;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Tokens;
 using ShallWeOrder.DBService;
@@ -16,11 +17,16 @@ namespace ShallWeOrder.GrpcService
     public class AuthService : Auther.AutherBase
     {
         private readonly ILogger<AuthService> _logger;
+        private IConfiguration _configuration;
         private UserDBService _userDBService;
 
-        public AuthService(ILogger<AuthService> logger, UserDBService userDBService)
+        public AuthService(
+            ILogger<AuthService> logger,
+            IConfiguration configuration,
+            UserDBService userDBService)
         {
             _logger = logger;
+            _configuration = configuration;
             _userDBService = userDBService;
         }
 
@@ -63,7 +69,7 @@ namespace ShallWeOrder.GrpcService
             }
 
             var tokenHandler = new JwtSecurityTokenHandler();
-            var key = Encoding.ASCII.GetBytes("0e392c33-746a-4b82-a8be-8400719abd89");
+            var key = Encoding.ASCII.GetBytes(_configuration["Auth:Key"]);
             var tokenDescriptor = new SecurityTokenDescriptor
             {
                 Subject = new ClaimsIdentity(new Claim[]
