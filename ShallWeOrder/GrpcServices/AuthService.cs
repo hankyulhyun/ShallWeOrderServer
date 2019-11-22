@@ -30,7 +30,7 @@ namespace ShallWeOrder.GrpcService
             _userDBService = userDBService;
         }
 
-        // [AllowAnonymous]
+        [AllowAnonymous]
         public override Task<SignUpReply> SignUp(SignUpRequest request, ServerCallContext context)
         {
             _logger.LogInformation("Sign up request : {Id} / {Password} / {Gender}", request.Id, request.Password, request.Gender);
@@ -62,30 +62,22 @@ namespace ShallWeOrder.GrpcService
             {
                 return Task.FromResult(new SignInReply
                 {
-                    Result = 503,
+                    Result = 503, // (?)
                     AccessToken = "",
                     RefreshToken = "",
                 });
             }
 
-            var tokenHandler = new JwtSecurityTokenHandler();
-            var key = Encoding.ASCII.GetBytes(_configuration["Auth:Key"]);
-            var tokenDescriptor = new SecurityTokenDescriptor
+            var claims = new Claim[]
             {
-                Subject = new ClaimsIdentity(new Claim[]
-                {
-                    new Claim(ClaimTypes.Name, user.Id.ToString()),
-                }),
-                Expires = DateTime.UtcNow.AddMinutes(10),
-                SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
+                new Claim(ClaimTypes.Name, user.Id.ToString()),
             };
-            var token = tokenHandler.CreateToken(tokenDescriptor);
 
             return Task.FromResult(new SignInReply
             {
                 Result = 200,
-                AccessToken = tokenHandler.WriteToken(token),
-                RefreshToken = tokenHandler.WriteToken(token),
+                AccessToken = GenerateToken(claims, DateTime.UtcNow.AddMinutes(30)),
+                RefreshToken = GenerateToken(claims, DateTime.UtcNow.AddDays(30)),
             });
         }
 
@@ -96,6 +88,20 @@ namespace ShallWeOrder.GrpcService
             {
                 Result = 200,
             });
+        }
+
+        private string GenerateToken(Claim[] claims, DateTime expires)
+        {
+            var tokenHandler = new JwtSecurityTokenHandler();
+            var key = Encoding.ASCII.GetBytes(_configuration["Auth:Key"]);
+            var tokenDescriptor = new SecurityTokenDescriptor
+            {
+                Subject = new ClaimsIdentity(claims),
+                Expires = expires,
+                SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
+            };
+            var token = tokenHandler.CreateToken(tokenDescriptor);
+            return tokenHandler.WriteToken(token);
         }
     }
 }
