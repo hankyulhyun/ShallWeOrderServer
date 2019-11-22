@@ -49,6 +49,7 @@ namespace ShallWeOrder
             });
 
             services.AddSingleton<UserDBService>();
+            services.AddSingleton<OrderDBService>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
