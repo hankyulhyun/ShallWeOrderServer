@@ -1,6 +1,7 @@
 using System;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
+using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
 using Grpc.Core;
@@ -33,13 +34,18 @@ namespace ShallWeOrder.GrpcService
         [AllowAnonymous]
         public override Task<SignUpReply> SignUp(SignUpRequest request, ServerCallContext context)
         {
-            _logger.LogInformation("Sign up request : {Id} / {Password} / {Gender}", request.Id, request.Password, request.Gender);
+
+            var sha = new SHA512Managed();
+            var hashedPassword = Convert.ToBase64String(
+                sha.ComputeHash(Encoding.ASCII.GetBytes(request.Password)));
+
+            _logger.LogInformation("Sign up request : {Id} / {Password} / {Gender}", request.Id, hashedPassword, request.Gender);
 
             // TODO : password hashing
             User user = new User()
             {
                 UserId = request.Id,
-                Password = request.Password,
+                Password = hashedPassword,
                 Gender = (int)request.Gender,
                 Registerday = DateTime.Now,
             };
@@ -56,8 +62,12 @@ namespace ShallWeOrder.GrpcService
         [AllowAnonymous]
         public override Task<SignInReply> SignIn(SignInRequest request, ServerCallContext context)
         {
-            _logger.LogInformation("Sign in request : {Id} / {Password} ", request.Id, request.Password);
-            var user = _userDBService.Get(request.Id, request.Password);
+            var sha = new SHA512Managed();
+            var hashedPassword = Convert.ToBase64String(
+                sha.ComputeHash(Encoding.ASCII.GetBytes(request.Password)));
+
+            _logger.LogInformation("Sign in request : {Id} / {Password} ", request.Id, hashedPassword);
+            var user = _userDBService.Get(request.Id, hashedPassword);
             if (user == null)
             {
                 return Task.FromResult(new SignInReply
